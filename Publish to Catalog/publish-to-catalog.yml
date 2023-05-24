@@ -1,0 +1,50 @@
+# This is a sample Custom Hook Template for testing hooks in the ALM Accelerator pipelines. The intention of the Custom Templates is to provide
+# a library of custom hook templates that can be used by organizations in their pipelines via the hooks in their pipeline. Contributions to these 
+# custom templates are welcome if you have created a hook that you believe would be useful to others.
+steps:
+- pwsh: |
+    . "$env:POWERSHELLPATH/load-save-pipeline-parameters.ps1"
+    Write-Host "Loading pipeline parameters from $(Agent.BuildDirectory)\deploy-pipeline-parameters.json"
+    $parameters = Read-Pipeline-Parameters "$(Agent.BuildDirectory)\deploy-pipeline-parameters.json"
+    Write-Host "serviceConnectionName:" $parameters.serviceConnectionName
+    Write-Host "serviceConnectionUrl:" $parameters.serviceConnectionUrl
+    Write-Host "environmentName:" $parameters.environmentName
+    Write-Host "solutionName:" $parameters.solutionName
+    Write-Host "importUnmanaged:" $parameters.importUnmanaged
+    Write-Host "overwriteUnmanagedCustomizations:" $parameters.overwriteUnmanagedCustomizations
+    Write-Host "skipBuildToolsInstaller:" $parameters.skipBuildToolsInstaller
+    Write-Host "cacheEnabled:" $parameters.cacheEnabled
+
+    If ($parameters.environmentName -eq "$(catalogSubmitFromEnviroment)") {
+      $artifactDropPath = '$(Pipeline.Workspace)/drop/'
+      If (Test-Path -Path "$(Pipeline.Workspace)/buildPipeline/drop")
+      {
+          $artifactDropPath = "$(Pipeline.Workspace)/buildPipeline/drop/"
+      }
+
+      #Attempt to find the catalog submission.json file in the build pipeline drop if build and deploy are seperate pipelines
+      Get-ChildItem -Path "$artifactDropPath" -Filter "submission.json" | 
+        ForEach-Object {
+            If ($_.FullName.Contains("submission.json")) 
+            { 
+                $catalogSubmissionRequest = $_.FullName 
+            }
+        }
+
+      #Attempt to find the managed solution in the build pipeline drop if build and deploy are seperate pipelines
+      Get-ChildItem -Path "$artifactDropPath" -Filter "$solutionName*.zip" | 
+        ForEach-Object {
+            If ($_.FullName.Contains("_managed")) 
+            { 
+                $managedSolutionPath = $_.FullName 
+            }
+        }
+
+      $pacToolsPath = $env:POWERPLATFORMTOOLS_PACCLIPATH + "\pac\tools"
+
+      Invoke-Expression -Command "$pacToolsPath\pac auth create --url $(catalogUrl) --name catalog --applicationId $(catalogClientId) --clientSecret $(catalogClientSecret) --tenant $(catalogTenantId)"
+
+      Write-Host "Publishing solution to Catalog ($(catalogUrl))"
+      Invoke-Expression -Command "$pacToolsPath\pac catalog submit -p $catalogSubmissionRequest -sz $managedSolutionPath"
+    }
+  displayName: 'Publish to Catalog ($(catalogUrl))'

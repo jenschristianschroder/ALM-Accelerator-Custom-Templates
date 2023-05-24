@@ -1,0 +1,33 @@
+steps:
+- pwsh: |
+    . "$env:POWERSHELLPATH/load-save-pipeline-parameters.ps1"
+    Write-Host "Loading pipeline parameters from $(Agent.BuildDirectory)\build-pipeline-parameters.json"
+    $parameters = Read-Pipeline-Parameters "$(Agent.BuildDirectory)\build-pipeline-parameters.json"
+
+    Write-Host $parameters
+
+    Write-Host "buildType:" $parameters.buildType
+    Write-Host "solutionName:" $parameters.solutionName
+
+    $splitName = "$(Build.Repository.Name)".Split("/")
+    $paramRepoName = $splitName[$splitName.Length - 1]
+    $paramSolutionName = $parameters.solutionName
+
+    Write-Host "##vso[task.setVariable variable=solutionName]$paramSolutionName"
+    Write-Host "##vso[task.setVariable variable=repo]$paramRepoName"
+
+    Write-Host $paramRepoName
+    Write-Host $paramSolutionName
+
+    if(Test-Path -Path "$(Build.SourcesDirectory)\$paramRepoName\$paramSolutionName\catalog\submission.json") {
+        Copy-item -Force -Recurse -Verbose "$(Build.SourcesDirectory)\$paramRepoName\$paramSolutionName\catalog\submission.json" -Destination $(Build.ArtifactStagingDirectory)
+        Write-Host 'submission.json copied to ArtifactStagingDirectory'
+        Write-Host "##vso[task.setVariable variable=submitToCatalog]true"
+            }
+    else {
+        Write-Host 'submission.json file not found'
+        Write-Host "##vso[task.setVariable variable=submitToCatalog]false"
+    }
+
+  displayName: 'Copy submission.json to ArtifactStagingDirectory'
+
