@@ -48,3 +48,4 @@ steps:
       Invoke-Expression -Command "$pacToolsPath\pac catalog submit -p $catalogSubmissionRequest -sz $managedSolutionPath"
     }
   displayName: 'Publish to Catalog ($(catalogUrl))'
+  condition: ne(variables['catalogSubmitFromEnviroment'], '')
