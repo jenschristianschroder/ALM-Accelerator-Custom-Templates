@@ -1,6 +1,10 @@
-# This is a sample Custom Hook Template for testing hooks in the ALM Accelerator pipelines. The intention of the Custom Templates is to provide
-# a library of custom hook templates that can be used by organizations in their pipelines via the hooks in their pipeline. Contributions to these 
-# custom templates are welcome if you have created a hook that you believe would be useful to others.
+# This template will commit the deployed solution to Catalog
+# Required variables (can be configured in alm-accelerator-variable-group)
+# - catalogSubmitFromEnviroment: the target environment for the deployment that should submit to Catalog. If you want to submit on successful deployment to Production the value should be "Production" 
+# - catalogUrl: the url of the environment hosting the Catalog
+# - catalogClientId: the Client Id of the App User that has been configured to be allowed to submit to Catalog
+# - catalogClientSecret: the Client Secret of the App User that has been configured to be allowed to submit to Catalog
+# - catalogTenantId: the Tenant Id of the tenant in which the App User is created
 steps:
 - pwsh: |
     . "$env:POWERSHELLPATH/load-save-pipeline-parameters.ps1"
