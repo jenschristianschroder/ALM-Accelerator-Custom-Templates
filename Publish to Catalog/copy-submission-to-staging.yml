@@ -1,3 +1,6 @@
+# This template will publish the submission.json as a pipeline artifact to allow the deploy stage to submit the solution to Catalog 
+# Required variables (can be configured in alm-accelerator-variable-group)
+# - catalogSubmitFromEnviroment: the target environment for the deployment that should submit to Catalog. If you want to submit on successful deployment to Production the value should be "Production" 
 steps:
 - pwsh: |
     . "$env:POWERSHELLPATH/load-save-pipeline-parameters.ps1"
@@ -30,4 +33,4 @@ steps:
     }
 
   displayName: 'Copy submission.json to ArtifactStagingDirectory'
-
+  condition: ne(variables['catalogSubmitFromEnviroment'], '')
