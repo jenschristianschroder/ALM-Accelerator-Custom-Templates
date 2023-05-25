@@ -30,4 +30,4 @@ steps:
     }
 
   displayName: 'Copy submission.json to ArtifactStagingDirectory'
-
+  condition: ne(variables['catalogSubmitFromEnviroment'], '')
