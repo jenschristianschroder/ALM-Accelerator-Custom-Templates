@@ -1,0 +1,11 @@
+# Saves configuration data (Deployment Settings) to file
+steps:
+- pwsh: |
+    . "$env:POWERSHELLPATH/load-save-pipeline-parameters.ps1"
+    $parameters = Read-Pipeline-Parameters "$(Agent.BuildDirectory)\export-pipeline-parameters.json"
+
+    $paramRepo = $parameters.repo
+    $paramSolutionName = $parameters.solutionName
+
+    $parameters.configurationData | ConvertTo-Json | Out-File -FilePath "$(Build.SourcesDirectory)\$paramRepo\$paramSolutionName\config\configurationData.json"
+  displayName: 'Save configuration data'
